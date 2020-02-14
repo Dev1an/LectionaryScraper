@@ -16,16 +16,27 @@ func url(for date: DateTuple) -> URL {
 
 public enum ParseError: Swift.Error {
 	case contentNotFound
+	case dateNotFound
+	case readingsNotFound
 }
 
 public func downloadReadings(for date: DateTuple) throws -> [StyledTextSegment] {
 	let html = try HTML(url: url(for: date), encoding: .utf8)
 
-	guard let contentElement = html.css(".readings #cs_control_1386").first else {
+
+	guard let contentElement = html.css(".readings").first else {
 		throw ParseError.contentNotFound
 	}
 
+	guard let date = contentElement.css("h3").first?.xpath("child::node()").first?.normalizedText else {
+		throw ParseError.dateNotFound
+	}
+
+	let readings = contentElement.css(".bibleReadingsWrapper")
+
 	var readingsElements = [StyledTextSegment]()
+
+	readingsElements.append(.liturgicalDate(date))
 
 	func addChilds(of element: Kanna.XMLElement) {
 		let tagName = element.tagName
@@ -35,12 +46,12 @@ public func downloadReadings(for date: DateTuple) throws -> [StyledTextSegment] 
 			} else {
 				readingsElements.append(.text(text))
 			}
-		} else if tagName == "h3", let text = element.normalizedText {
-			readingsElements.append(.liturgicalDate(text))
 		} else if tagName == "h4", let text = element.normalizedText {
 			readingsElements.append(.title(text))
 		} else if tagName == "br" && readingsElements.last?.isTitle == false {
-		   readingsElements.append(.lineBreak)
+			readingsElements.append(.lineBreak)
+		} else if element.className?.contains("box-yellow") ?? false {
+			// skip
 		} else {
 			for child in element.xpath("child::node()") {
 				addChilds(of: child)
@@ -51,7 +62,9 @@ public func downloadReadings(for date: DateTuple) throws -> [StyledTextSegment] 
 		}
 	}
 
-	addChilds(of: contentElement)
+	for reading in readings {
+		addChilds(of: reading)
+	}
 
 	return readingsElements
 }
