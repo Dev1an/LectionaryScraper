@@ -18,6 +18,7 @@ struct EReading: Decodable {
 	let book: Book
 	let type: Reading.Kind
 	let text: String
+	let readingCode: String
 }
 
 struct Reading {
@@ -33,7 +34,8 @@ struct Reading {
 	let book: String
 	let kind: Kind
 	let verses: [Verse]
-	
+	let reference: String
+
 	static let referenceFinder = try! NSRegularExpression(
 		pattern: "\\[\\[(\\w+) (\\d+),(\\d+)([a-z]*)\\]\\]",
 		options: []
@@ -43,6 +45,7 @@ struct Reading {
 		id = reading.id
 		book = reading.book.fullTitle
 		kind = reading.type
+		reference = reading.readingCode
 		
 		let referenceMatches = Reading.referenceFinder.matches(
 			   in: reading.text,
@@ -80,6 +83,7 @@ struct Reading {
 	var styledText: [StyledTextSegment] {
 		var text = [StyledTextSegment]()
 		text.append(.title(book) )
+		text.append(.source(reference))
 		for verse in verses {
 			let lines = verse.content.components(separatedBy: "\n").map {$0.trimmingCharacters(in: ["\r"])}
 			if let firstLine = lines.first {
