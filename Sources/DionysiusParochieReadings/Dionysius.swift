@@ -19,9 +19,9 @@ func dionysiusFromatter() -> DateFormatter {
 
 let formatter = dionysiusFromatter()
 
-let url = URL(string: "https://dionysiusparochie.nl/liturgie/lezingen/")!
+public let url = URL(string: "https://dionysiusparochie.nl/liturgie/lezingen/")!
 
-public func downloadCalendar() throws -> [DateTuple:[ReadingsLocation]] {
+public func downloadCalendar(from url: URL = url) throws -> [DateTuple:[ReadingsLocation]] {
 	let html = try HTML(url: url, encoding: .utf8)
 
 	var liturgicCalendar = [DateTuple:[ReadingsLocation]]()
@@ -39,20 +39,16 @@ public func downloadCalendar() throws -> [DateTuple:[ReadingsLocation]] {
 		guard let dateTuple = try? DateTuple(from: date) else {continue}
 
 		var locations = [ReadingsLocation]()
-		for cursor in paragraph.xpath("./a[@href][1] | ./a[@href][1]/following-sibling::*") {
-			if cursor.tagName == "a" {
-				if let link = cursor["href"], let url = URL(string: link) {
-					var secureURL = URLComponents(url: url, resolvingAgainstBaseURL: true)!
-					secureURL.scheme = "https"
-					locations.append(
-						ReadingsLocation(
-							title: cursor.text!,
-							url: secureURL.url!
-						)
+		for cursor in paragraph.css("a[href]") {
+			if let link = cursor["href"], link.contains("/lectionaria/"), let url = URL(string: link) {
+				var secureURL = URLComponents(url: url, resolvingAgainstBaseURL: true)!
+				secureURL.scheme = "https"
+				locations.append(
+					ReadingsLocation(
+						title: cursor.text!,
+						url: secureURL.url!
 					)
-				}
-			} else if cursor.tagName == "br" {
-				break
+				)
 			}
 		}
 		if !locations.isEmpty {
@@ -95,8 +91,19 @@ public struct ReadingsLocation {
 			} else if tagName == "h1", let text = element.normalizedText {
 				readingsElements.append(.liturgicalDate(text))
 			} else if ["h2", "strong"].contains(tagName), let text = element.normalizedText {
-				let tail = text.firstIndex(of: "(") ?? text.endIndex
-				readingsElements.append(.title(String(text.prefix(upTo: tail)).capitalizingFirstLetter()))
+				let title: String
+				let ref: String?
+				if let tail = text.firstIndex(of: "(") {
+					title = String(text.prefix(upTo: tail))
+					ref = String(
+						text[text.index(after: tail) ..< (text.firstIndex(of: ")") ?? text.endIndex)]
+					)
+				} else {
+					title = text
+					ref = nil
+				}
+				readingsElements.append(.title(title.capitalizingFirstLetter()))
+				if let reference = ref {readingsElements.append(.source(reference))}
 			} else {
 				for child in element.xpath("child::node()") {
 					addChilds(of: child)

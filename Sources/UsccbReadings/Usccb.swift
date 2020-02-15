@@ -23,7 +23,6 @@ public enum ParseError: Swift.Error {
 public func downloadReadings(for date: DateTuple) throws -> [StyledTextSegment] {
 	let html = try HTML(url: url(for: date), encoding: .utf8)
 
-
 	guard let contentElement = html.css(".readings").first else {
 		throw ParseError.contentNotFound
 	}
