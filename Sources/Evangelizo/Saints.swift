@@ -12,14 +12,14 @@ import Kanna
 import WatchKit
 #endif
 
-struct Saint: Decodable, Equatable {
-	let id: String
-	let name: String
+public struct Saint: Decodable, Equatable {
+	public let id: String
+	public let name: String
 	
-	let imageLinks: ImageLinks?
+	public let imageLinks: ImageLinks?
 
-	let biography: String?
-	let shortDescription: String?
+	public let biography: String?
+	public let shortDescription: String?
 	
 	mutating func formattedBioraphy() throws -> NSMutableAttributedString {
 		let html = try HTML(html: biography!, encoding: .utf8)
@@ -36,7 +36,7 @@ struct Saint: Decodable, Equatable {
 		)
 	}
 	
-	struct ImageLinks: Decodable {
+	public struct ImageLinks: Decodable {
 		let face: URL?
 		let large: URL?
 	}

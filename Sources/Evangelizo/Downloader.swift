@@ -34,11 +34,11 @@ public let evangelizoSourceMentioning = "The above content is downloaded from ev
 
 public struct DayContainer: Decodable {
 	public struct Entry: Decodable {
-		let saints: [Saint]
-		let readings: [EReading]
-		let date: String
-		let liturgicTitle: String
-		let commentary: Commentary?
+		public let saints: [Saint]
+		public let readings: [EReading]
+		public let date: String
+		public let liturgicTitle: String
+		public let commentary: Commentary?
 		
 		public var readingsWithCommentary: [StyledTextSegment] {
 			var text = [StyledTextSegment.liturgicalDate(liturgicTitle)]

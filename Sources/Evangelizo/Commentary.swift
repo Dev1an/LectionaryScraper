@@ -9,18 +9,18 @@
 import Foundation
 import LectionaryScraper
 
-struct Commentary: Decodable {
-	struct Author: Decodable {
-		let name: String
-		let shortDescription: String?
+public struct Commentary: Decodable {
+	public struct Author: Decodable {
+		public let name: String
+		public let shortDescription: String?
 	}
 	
-	let author: Author
-	let description: String
-	let source: String
-	let title: String
+	public let author: Author
+	public let description: String
+	public let source: String
+	public let title: String
 	
-	var styledText: [StyledTextSegment] {
+	public var styledText: [StyledTextSegment] {
 		var text = [StyledTextSegment]()
 		// Title
 		text.append(.title(title))

@@ -9,7 +9,7 @@
 import Foundation
 import LectionaryScraper
 
-struct EReading: Decodable {
+public struct EReading: Decodable {
 	struct Book: Decodable {
 		let fullTitle: String
 	}
@@ -28,20 +28,20 @@ struct Reading {
 		case psalm
 	}
 	
-	typealias Verse = (reference: Reference, content: String)
+	public typealias Verse = (reference: Reference, content: String)
 
-	let id: String
-	let book: String
-	let kind: Kind
-	let verses: [Verse]
-	let reference: String
+	public let id: String
+	public let book: String
+	public let kind: Kind
+	public let verses: [Verse]
+	public let reference: String
 
 	static let referenceFinder = try! NSRegularExpression(
 		pattern: "\\[\\[(\\w+) (\\d+),(\\d+)([a-z]*)\\]\\]",
 		options: []
 	)
 	
-	init(from reading: EReading) {
+	public init(from reading: EReading) {
 		id = reading.id
 		book = reading.book.fullTitle
 		kind = reading.type
