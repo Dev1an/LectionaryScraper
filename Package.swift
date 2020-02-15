@@ -16,6 +16,7 @@ let package = Package(
 		.library(
 			name: "UsccbReadings",
 			targets: ["UsccbReadings"]),
+		.executable(name: "DionysiusDownloader", targets: ["DionysiusDownloader"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -37,6 +38,9 @@ let package = Package(
             name: "UsccbReadings",
             dependencies: ["HMassTexts", "Kanna"]),
 
+        .target(
+            name: "DionysiusDownloader",
+            dependencies: ["DionysiusParochieReadings"]),
 		.testTarget(
             name: "DionysiusTests",
             dependencies: ["DionysiusParochieReadings"]),
