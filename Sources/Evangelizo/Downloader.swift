@@ -87,7 +87,7 @@ public func downloadLiturgicalInfo(of date: DateTuple = try! DateTuple(from: Dat
 		}
 		var request = URLRequest(url: url)
 		request.setValue("application/json", forHTTPHeaderField: "Accept")
-		request.setValue("DailyGospel iOS app by github.com/Dev1an", forHTTPHeaderField: "User-Agent")
+		request.setValue("Lectionary scraper by github.com/Dev1an", forHTTPHeaderField: "User-Agent")
 		request.cachePolicy = .returnCacheDataElseLoad
 		let task = session.dataTask(with: request) { (data, response, error) in
 			do {
