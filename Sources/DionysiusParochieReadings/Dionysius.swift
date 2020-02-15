@@ -8,7 +8,7 @@
 
 import Foundation
 import Kanna
-import HMassTexts
+import LectionaryScraper
 
 func dionysiusFromatter() -> DateFormatter {
 	let formatter = DateFormatter()

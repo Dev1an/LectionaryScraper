@@ -6,7 +6,7 @@
 //  Copyright © 2018 Devian. All rights reserved.
 //
 
-import HMassTexts
+import LectionaryScraper
 
 extension Reference {
 	static let youversionBooks = [

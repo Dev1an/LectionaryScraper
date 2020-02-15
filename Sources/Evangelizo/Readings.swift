@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import HMassTexts
+import LectionaryScraper
 
 struct EReading: Decodable {
 	struct Book: Decodable {

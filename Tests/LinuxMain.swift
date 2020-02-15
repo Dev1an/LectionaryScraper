@@ -1,7 +1,7 @@
 import XCTest
 
-import HMassTextsTests
+import LectionaryScraperTests
 
 var tests = [XCTestCaseEntry]()
-tests += HMassTextsTests.allTests()
+tests += LectionaryScraperTests.allTests()
 XCTMain(tests)

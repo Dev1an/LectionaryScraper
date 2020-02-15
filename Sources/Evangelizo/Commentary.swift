@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import HMassTexts
+import LectionaryScraper
 
 struct Commentary: Decodable {
 	struct Author: Decodable {

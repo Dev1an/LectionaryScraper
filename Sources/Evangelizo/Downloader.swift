@@ -13,7 +13,7 @@ import UIKit
 import AppKit
 #endif
 import os
-import HMassTexts
+import LectionaryScraper
 
 let dutchLanguageTag = "NL"
 let englishLanguageTag = "AM"

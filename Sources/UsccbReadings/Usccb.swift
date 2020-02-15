@@ -5,7 +5,7 @@
 //  Created by Damiaan on 14/02/2020.
 //
 
-import HMassTexts
+import LectionaryScraper
 import Foundation
 import Kanna
 
