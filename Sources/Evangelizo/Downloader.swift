@@ -15,21 +15,6 @@ import AppKit
 import os
 import LectionaryScraper
 
-let dutchLanguageTag = "NL"
-let englishLanguageTag = "AM"
-
-public let languageTags = [
-	"de": "DE",
-	"el": "GR",
-	"en": englishLanguageTag,
-	"es": "SP",
-	"fr": "FR",
-	"nl": dutchLanguageTag,
-	"pl": "PL",
-	"zh": "CN",
-	"ar": "AR",
-]
-
 public let evangelizoSourceMentioning = "The above content is downloaded from evangelizo.org"
 
 public struct DayContainer: Decodable {
@@ -62,16 +47,6 @@ enum EvangelizoError: Error {
 
 let jsonDecoder = JSONDecoder()
 
-let defaultLanguageTag = englishLanguageTag
-public func currentLanguageTag() -> String {
-	let preferredLanguage = Locale.preferredLanguages.compactMap{Locale(identifier: $0).languageCode}.first{ languageTags.keys.contains($0) }
-	if let code = preferredLanguage {
-		return languageTags[code] ?? defaultLanguageTag
-	} else {
-		return defaultLanguageTag
-	}
-}
-
 public enum DownloadPriority: Float {
 	case normal = 0.6
 	case preFetch = 0.5
@@ -79,9 +54,9 @@ public enum DownloadPriority: Float {
 }
 
 let baseURL = "https://publication.evangelizo.ws"
-public func downloadLiturgicalInfo(of date: DateTuple = try! DateTuple(from: Date().components), session: URLSession, priority: DownloadPriority, language: String = currentLanguageTag(), completionHandler: @escaping (Result<DayContainer.Entry, Error>) -> Void) {
+public func downloadLiturgicalInfo(of date: DateTuple = try! DateTuple(from: Date().components), session: URLSession, priority: DownloadPriority, language: LanguageTag = currentLanguageTag(), completionHandler: @escaping (Result<DayContainer.Entry, Error>) -> Void) {
 	do {
-		let location = "\(baseURL)/\(language)/days/\(date.year)-\(date.month.pad2)-\(date.day.pad2)"
+		let location = "\(baseURL)/\(language.rawValue)/days/\(date.year)-\(date.month.pad2)-\(date.day.pad2)"
 		guard let url = URL(string: location) else {
 			throw EvangelizoError.unableToConstructURL(location)
 		}
