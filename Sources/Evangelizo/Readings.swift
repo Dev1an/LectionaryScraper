@@ -10,8 +10,10 @@ import Foundation
 import LectionaryScraper
 
 public struct EReading: Decodable {
-	struct Book: Decodable {
-		let fullTitle: String
+	public struct Book: Decodable {
+		public let fullTitle: String
+		public let shortTitle: String
+		public let code: String
 	}
 	
 	let id: String
@@ -19,10 +21,11 @@ public struct EReading: Decodable {
 	let type: Reading.Kind
 	let text: String
 	let readingCode: String
+	let referenceDisplayed: String
 }
 
-struct Reading {
-	enum Kind: String, Decodable {
+public struct Reading {
+	public enum Kind: String, Decodable {
 		case reading
 		case gospel
 		case psalm
@@ -31,10 +34,11 @@ struct Reading {
 	public typealias Verse = (reference: Reference, content: String)
 
 	public let id: String
-	public let book: String
+	public let book: EReading.Book
 	public let kind: Kind
 	public let verses: [Verse]
 	public let reference: String
+	public let readableReference: String
 
 	static let referenceFinder = try! NSRegularExpression(
 		pattern: "\\[\\[(\\w+) (\\d+),(\\d+)([a-z]*)\\]\\]",
@@ -43,9 +47,10 @@ struct Reading {
 	
 	public init(from reading: EReading) {
 		id = reading.id
-		book = reading.book.fullTitle
+		book = reading.book
 		kind = reading.type
 		reference = reading.readingCode
+		readableReference = reading.book.shortTitle + " " + reading.referenceDisplayed
 		
 		let referenceMatches = Reading.referenceFinder.matches(
 			   in: reading.text,
@@ -82,7 +87,7 @@ struct Reading {
 	
 	var styledText: [StyledTextSegment] {
 		var text = [StyledTextSegment]()
-		text.append(.title(book) )
+		text.append(.title(book.fullTitle) )
 		text.append(.source(reference))
 		for verse in verses {
 			let lines = verse.content.components(separatedBy: "\n").map {$0.trimmingCharacters(in: ["\r"])}
