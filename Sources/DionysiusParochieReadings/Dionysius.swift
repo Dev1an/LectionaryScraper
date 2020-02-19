@@ -58,26 +58,36 @@ public func downloadCalendar(from url: URL = url) throws -> [DateTuple:[Readings
 	return liturgicCalendar
 }
 
-public struct ReadingsLocation {
-	public let title: String
-	public let location: URL
+public struct RawContent {
+	let content: Kanna.XMLElement
 
-	init(title: String, url: URL) { (self.title, location) = (title, url) }
-
-	enum Error: Swift.Error {
-		case contentNotFound
-		case invalidHTML
+	public func psalmResponse() -> String? {
+		for header in content.css("h2") {
+			if header.normalizedText?.lowercased().contains("tussenzang") ?? false {
+				let text = header.xpath("./following-sibling::node()//text()[contains(translate(., 'REFREIN', 'refrein'), 'refrein')][1]/following-sibling::text()").compactMap {$0.normalizedText} .joined(separator: "\n")
+				return text.isEmpty ? nil : text
+			}
+		}
+		return nil
 	}
 
-	public func download() throws -> [StyledTextSegment] {
-		let data = try Data(contentsOf: location)
-		let page: HTMLDocument
-		do    { page = try HTML(html: data, encoding: .utf8)      }
-		catch { page = try HTML(html: data, encoding: .isoLatin1) }
-		guard let contentElement = page.css("body > #page #main > article.post-content > div.entry-content").first else {
-			throw Error.contentNotFound
+	public func verseBeforeGospel() -> (content: String?, reference: String?) {
+		for header in content.css("h2") {
+			if let title = header.normalizedText?.lowercased(), let range = title.range(of: "vers voor het evangelie") {
+				let reference = title[range.upperBound...]
+					.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union([":"]))
+				var lines = [String]()
+				for node in header.xpath("./following-sibling::node()") {
+					if node.tagName == "h2" {break}
+					lines.append(contentsOf: node.xpath("text()").compactMap { $0.normalizedText }.filter{$0 != "Alleluia."} )
+				}
+				return (lines.joined(separator: "\n"), reference)
+			}
 		}
+		return (nil, nil)
+	}
 
+	public func styledText() -> [StyledTextSegment] {
 		var readingsElements = [StyledTextSegment]()
 
 		func addChilds(of element: Kanna.XMLElement) {
@@ -116,9 +126,32 @@ public struct ReadingsLocation {
 			}
 		}
 
-		addChilds(of: contentElement)
+		addChilds(of: content)
 
 		return readingsElements
+	}
+}
+
+public struct ReadingsLocation {
+	public let title: String
+	public let location: URL
+
+	init(title: String, url: URL) { (self.title, location) = (title, url) }
+
+	enum Error: Swift.Error {
+		case contentNotFound
+		case invalidHTML
+	}
+
+	public func download() throws -> RawContent {
+		let data = try Data(contentsOf: location)
+		let page: HTMLDocument
+		do    { page = try HTML(html: data, encoding: .utf8)      }
+		catch { page = try HTML(html: data, encoding: .isoLatin1) }
+		guard let contentElement = page.css("body > #page #main > article.post-content > div.entry-content").first else {
+			throw Error.contentNotFound
+		}
+		return RawContent(content: contentElement)
 	}
 }
 

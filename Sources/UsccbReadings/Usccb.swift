@@ -20,16 +20,60 @@ public enum ParseError: Swift.Error {
 	case readingsNotFound
 }
 
-public func downloadReadings(for date: DateTuple) throws -> [StyledTextSegment] {
+public func rawContent(for date: DateTuple) throws -> Kanna.XMLElement {
 	let html = try HTML(url: url(for: date), encoding: .utf8)
-
-	guard let contentElement = html.css(".readings").first else {
+	if let contentElement = html.css(".readings").first {
+		return contentElement
+	} else {
 		throw ParseError.contentNotFound
 	}
+}
 
+public func liturgicalDate(from contentElement: Kanna.XMLElement) throws -> String {
 	guard let date = contentElement.css("h3").first?.xpath("child::node()").first?.normalizedText else {
 		throw ParseError.dateNotFound
 	}
+	return date
+}
+
+public func psalmResponse(from content: Kanna.XMLElement) -> String? {
+	for title in content.css(".bibleReadingsWrapper h4") {
+		if title.at_xpath("./text()[1]")?.normalizedText?.contains("Responsorial Psalm") ?? false {
+			return title.parent!.css(".poetry strong").first?.normalizedText
+		}
+	}
+	return nil
+}
+
+public func verseBeforeGospel(from content: Kanna.XMLElement) -> (content: String?, reference: String?) {
+	for title in content.css(".bibleReadingsWrapper h4") {
+		if let text = title.at_xpath("./text()[1]")?.normalizedText, text.contains("Verse Before The Gospel") || text.contains("Alleluia") {
+			let verse: String?
+			let reference: String?
+			if let elements = title.parent!.css(".poetry p").first?.xpath("./text()"), elements.count > 0 {
+				verse = elements.filter { element in
+					let trimmed = element.normalizedText?.trimmingCharacters(in: .whitespacesAndNewlines)
+					return trimmed != "R." && trimmed != "Alleluia, alleluia."
+				}
+				.compactMap { $0.normalizedText }
+				.joined(separator: "\n")
+			} else {
+				verse = nil
+			}
+			if let referenceText = title.css("a[href]").first?.normalizedText {
+				reference = referenceText
+			} else {
+				reference = nil
+			}
+			return (verse, reference)
+		}
+	}
+	return (nil, nil)
+}
+
+public func downloadReadings(for date: DateTuple) throws -> [StyledTextSegment] {
+	let contentElement = try rawContent(for: date)
+	let date = try liturgicalDate(from: contentElement)
 
 	let readings = contentElement.css(".bibleReadingsWrapper")
 
