@@ -12,7 +12,6 @@ import UIKit
 #elseif os(macOS)
 import AppKit
 #endif
-import os
 import LectionaryScraper
 
 public let evangelizoSourceMentioning = "The above content is downloaded from evangelizo.org"
