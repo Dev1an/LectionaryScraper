@@ -41,7 +41,8 @@ public struct RawContent {
 
 	public func verseBeforeGospel() -> (content: String?, reference: String?) {
 		for title in content.css(".bibleReadingsWrapper h4") {
-			if let text = title.at_xpath("./text()[1]")?.normalizedText, text.contains("Verse Before The Gospel") || text.contains("Alleluia") {
+			if let text = title.at_xpath("./text()[1]")?.normalizedText?.lowercased(), text.contains("verse before the gospel") || text.contains("alleluia") {
+				print("Yes found vbg", title.parent?.innerHTML ?? "no parent found")
 				let verse: String?
 				let reference: String?
 				if let elements = title.parent!.css(".poetry p").first?.xpath("./text()"), elements.count > 0 {
