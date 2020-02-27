@@ -1,7 +1,12 @@
 import XCTest
 
-import LectionaryScraperTests
+import DionysiusTests
+import EvangelizoTests
+import UsccbTests
 
 var tests = [XCTestCaseEntry]()
-tests += LectionaryScraperTests.allTests()
+tests += DionysiusTests.__allTests()
+tests += EvangelizoTests.__allTests()
+tests += UsccbTests.__allTests()
+
 XCTMain(tests)

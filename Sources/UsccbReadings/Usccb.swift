@@ -75,7 +75,7 @@ public func rawContent(for date: DateTuple) throws -> RawContent {
 	}
 }
 
-public func downloadReadings(for date: DateTuple) throws -> [StyledTextSegment] {
+public func downloadReadings(for date: DateTuple = try! DateTuple(from: Date().components)) throws -> [StyledTextSegment] {
 	let raw = try rawContent(for: date)
 	let date = try raw.liturgicalDate()
 

@@ -20,7 +20,8 @@ public struct Saint: Decodable, Equatable {
 
 	public let biography: String?
 	public let shortDescription: String?
-	
+
+	#if !os(Linux)
 	mutating func formattedBioraphy() throws -> NSMutableAttributedString {
 		let html = try HTML(html: biography!, encoding: .utf8)
 		if let firstParagraph = html.css("p").first {
@@ -35,6 +36,7 @@ public struct Saint: Decodable, Equatable {
 			documentAttributes: nil
 		)
 	}
+	#endif
 	
 	public struct ImageLinks: Decodable {
 		let face: URL?

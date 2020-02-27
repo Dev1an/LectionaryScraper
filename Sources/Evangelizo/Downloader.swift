@@ -7,6 +7,10 @@
 //
 
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 #if os(iOS) || os(watchOS)
 import UIKit
 #elseif os(macOS)
