@@ -87,7 +87,7 @@ extension Reference {
 		return Reference.youversionBooks[bookAbbreviation]
 	}
 	
-	var youversion: String? {
+	public var youversion: String? {
 		if let book = youversionBookAbbreviation {
 			 return "\(book).\(chapter).\(verse)"
 		} else {

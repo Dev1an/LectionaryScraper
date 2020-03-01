@@ -17,12 +17,16 @@ public struct Saint: Decodable, Equatable {
 	public let name: String
 	
 	public let imageLinks: ImageLinks?
+	#if os(iOS) || os(macOS) || os(watchOS)
+		public lazy var face: XImage? = XImage(from: self.imageLinks?.face)
+		public lazy var photo: XImage? = XImage(from: self.imageLinks?.large)
+	#endif
 
 	public let biography: String?
 	public let shortDescription: String?
 
 	#if !os(Linux)
-	mutating func formattedBioraphy() throws -> NSMutableAttributedString {
+	public mutating func formattedBioraphy() throws -> NSMutableAttributedString {
 		let html = try HTML(html: biography!, encoding: .utf8)
 		if let firstParagraph = html.css("p").first {
 			firstParagraph.parent?.removeChild(firstParagraph)

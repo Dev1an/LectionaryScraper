@@ -42,7 +42,7 @@ public struct DayContainer: Decodable {
 	let data: Entry
 }
 
-enum EvangelizoError: Error {
+public enum EvangelizoError: Error {
 	case unableToConstructURL(String)
 	case unableToLoadInfo
 	case unableToDownloadRemoteData
