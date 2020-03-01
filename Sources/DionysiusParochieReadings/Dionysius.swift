@@ -37,7 +37,9 @@ public func downloadCalendar(from url: URL = url) throws -> [DateTuple:[Readings
 			.first?
 			.normalizedText?
 			.drop(while: {!CharacterSet(charactersIn: String($0)).isSubset(of: .decimalDigits)})
-			.prefix(while: {$0 != ":"})
+			.components(separatedBy: .whitespaces)
+			.prefix(3)
+			.joined(separator: " ")
 		else { continue }
 		guard let date = formatter.date(from: dateString.lowercased())?.components else { continue }
 		guard let dateTuple = try? DateTuple(from: date) else {continue}
