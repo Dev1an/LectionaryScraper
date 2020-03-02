@@ -88,7 +88,6 @@ public struct Reading {
 	var styledText: [StyledTextSegment] {
 		var text = [StyledTextSegment]()
 		text.append(.title(book.fullTitle) )
-		text.append(.source(reference))
 		for verse in verses {
 			let lines = verse.content.components(separatedBy: "\n").map {$0.trimmingCharacters(in: ["\r"])}
 			if let firstLine = lines.first {
