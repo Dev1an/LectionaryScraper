@@ -11,7 +11,7 @@ import Kanna
 
 func url(for date: DateTuple) -> URL {
 	let dateString = date.month.pad2 + date.day.pad2 + String(String(date.year).suffix(2))
-	return URL(string: "http://www.usccb.org/bible/readings/\(dateString).cfm")!
+	return URL(string: "https://bible.usccb.org/bible/readings/\(dateString).cfm")!
 }
 
 public enum ParseError: Swift.Error {
@@ -24,27 +24,27 @@ public struct RawContent {
 	let content: Kanna.XMLElement
 
 	public func liturgicalDate() throws -> String {
-		guard let date = content.css("h3").first?.xpath("child::node()").first?.normalizedText else {
+		guard let date = content.css("h2").first?.xpath("child::node()").first?.normalizedText else {
 			throw ParseError.dateNotFound
 		}
 		return date
 	}
 
 	public func psalmResponse() -> String? {
-		for title in content.css(".bibleReadingsWrapper h4") {
+		for title in content.css(".b-verse h3") {
 			if title.at_xpath("./text()[1]")?.normalizedText?.contains("Responsorial Psalm") ?? false {
-				return title.parent!.css(".poetry strong").first?.normalizedText
+				return title.parent!.parent!.css(".content-body strong").first?.normalizedText
 			}
 		}
 		return nil
 	}
 
 	public func verseBeforeGospel() -> (content: String?, reference: String?) {
-		for title in content.css(".bibleReadingsWrapper h4") {
+		for title in content.css(".b-verse h3") {
 			if let text = title.at_xpath("./text()[1]")?.normalizedText?.lowercased(), text.contains("verse before the gospel") || text.contains("alleluia") {
 				let verse: String?
 				let reference: String?
-				if let elements = title.parent!.css(".poetry p").first?.xpath("./text()"), elements.count > 0 {
+				if let elements = title.parent!.parent!.css(".content-body span").first?.xpath("./text()"), elements.count > 0 {
 					verse = elements.filter { element in
 						let trimmed = element.normalizedText?.trimmingCharacters(in: .whitespacesAndNewlines)
 						return trimmed != "R." && trimmed != "Alleluia, alleluia."
@@ -54,7 +54,7 @@ public struct RawContent {
 				} else {
 					verse = nil
 				}
-				if let referenceText = title.css("a[href]").first?.normalizedText {
+				if let referenceText = title.parent!.css("a[href]").first?.normalizedText {
 					reference = referenceText
 				} else {
 					reference = nil
@@ -68,7 +68,7 @@ public struct RawContent {
 
 public func rawContent(for date: DateTuple) throws -> RawContent {
 	let html = try HTML(url: url(for: date), encoding: .utf8)
-	if let contentElement = html.css(".readings").first {
+	if let contentElement = html.css(".node--type-daily-reading").first {
 		return RawContent(content: contentElement)
 	} else {
 		throw ParseError.contentNotFound
@@ -81,7 +81,7 @@ public func downloadReadings(for date: DateTuple = try! DateTuple(from: Date().c
 
 	let contentElement = raw.content
 
-	let readings = contentElement.css(".bibleReadingsWrapper")
+	let readings = contentElement.css(".b-verse .innerblock")
 
 	var readingsElements = [StyledTextSegment]()
 
@@ -95,12 +95,8 @@ public func downloadReadings(for date: DateTuple = try! DateTuple(from: Date().c
 			} else {
 				readingsElements.append(.text(text))
 			}
-		} else if tagName == "h4", let text = element.normalizedText {
-			readingsElements.append(.title(text))
 		} else if tagName == "br" && readingsElements.last?.isTitle == false {
 			readingsElements.append(.lineBreak)
-		} else if element.className?.contains("box-yellow") ?? false {
-			// skip
 		} else {
 			for child in element.xpath("child::node()") {
 				addChilds(of: child)
@@ -112,7 +108,17 @@ public func downloadReadings(for date: DateTuple = try! DateTuple(from: Date().c
 	}
 
 	for reading in readings {
-		addChilds(of: reading)
+		guard let headerGroup = reading.css(".content-header").first,
+			  let title = headerGroup.css("h3").first?.normalizedText,
+//			  let reference = headerGroup.css(".address a").first?.normalizedText,
+			  let bodyElement = reading.css(".content-body").first else {
+			continue
+		}
+
+		readingsElements.append(.title(title))
+//		readingsElements.append(.source(reference))
+
+		addChilds(of: bodyElement)
 	}
 
 	return readingsElements

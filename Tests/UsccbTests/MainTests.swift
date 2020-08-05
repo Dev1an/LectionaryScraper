@@ -11,7 +11,9 @@ import XCTest
 class UsccbTests: XCTestCase {
 
 	func testCanDownloadReadingsOfToday() throws {
-		XCTAssertGreaterThan(try downloadReadings().count, 0) 
+		let readings = try downloadReadings()
+		XCTAssertGreaterThan(readings.count, 0)
+		print(readings)
 	}
 
 }
