@@ -57,16 +57,9 @@ public enum DownloadPriority: Float {
 }
 
 let baseURL = "https://publication.evangelizo.ws"
-public func downloadLiturgicalInfo(of date: DateTuple = try! DateTuple(from: Date().components), session: URLSession, priority: DownloadPriority, language: LanguageTag = currentLanguageTag(), completionHandler: @escaping (Result<DayContainer.Entry, Error>) -> Void) {
+public func downloadLiturgicalInfo(of date: DateTuple = .today, session: URLSession, priority: DownloadPriority, language: LanguageTag = currentLanguageTag(), completionHandler: @escaping (Result<DayContainer.Entry, Error>) -> Void) {
 	do {
-		let location = "\(baseURL)/\(language.rawValue)/days/\(date.year)-\(date.month.pad2)-\(date.day.pad2)"
-		guard let url = URL(string: location) else {
-			throw EvangelizoError.unableToConstructURL(location)
-		}
-		var request = URLRequest(url: url)
-		request.setValue("application/json", forHTTPHeaderField: "Accept")
-		request.setValue("Lectionary scraper by github.com/Dev1an", forHTTPHeaderField: "User-Agent")
-		request.cachePolicy = .returnCacheDataElseLoad
+		let request = try requestForLiturgicalInfo(of: date, language: language)
 		let task = session.dataTask(with: request) { (data, response, error) in
 			do {
 				if let data = data {
@@ -88,4 +81,25 @@ public func downloadLiturgicalInfo(of date: DateTuple = try! DateTuple(from: Dat
 	} catch {
 		completionHandler(.failure(error))
 	}
+}
+
+func requestForLiturgicalInfo(of date: DateTuple = .today, language: LanguageTag) throws -> URLRequest {
+    let location = "\(baseURL)/\(language.rawValue)/days/\(date.year)-\(date.month.pad2)-\(date.day.pad2)"
+    guard let url = URL(string: location) else {
+        throw EvangelizoError.unableToConstructURL(location)
+    }
+    var request = URLRequest(url: url)
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    request.setValue("Lectionary scraper by github.com/Dev1an", forHTTPHeaderField: "User-Agent")
+    request.cachePolicy = .returnCacheDataElseLoad
+    return request
+}
+
+@available(macOS 12.0, *)
+public func downloadLiturgicalInfo(of date: DateTuple = .today, session: URLSession, language: LanguageTag = currentLanguageTag()) async throws -> DayContainer.Entry {
+    let request = try requestForLiturgicalInfo(of: date, language: language)
+    let (json, response) = try await session.data(for: request)
+    jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
+    let container = try jsonDecoder.decode(DayContainer.self, from: json)
+    return container.data
 }

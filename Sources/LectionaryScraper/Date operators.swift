@@ -36,6 +36,10 @@ public struct DateTuple: Hashable {
 			year: year, month: month, day: day
 		)
 	}
+    
+    public static var today: Self {
+        try! DateTuple(from: Date().components)
+    }
 }
 
 extension Date {
